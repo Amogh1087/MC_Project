@@ -425,5 +425,3 @@ All colors are defined as CSS custom properties on `:root`:
 | `--border` | `rgba(32,200,140,0.15)` | Card and element borders |
 
 ---
-
-*README covers UI only. Functional/mathematical documentation to follow.*
