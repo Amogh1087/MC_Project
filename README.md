@@ -444,3 +444,7 @@ All colors are defined as CSS custom properties on `:root`:
 | `--border` | `rgba(32,200,140,0.15)` | Card and element borders |
 | `--card` | `rgba(13,20,32,0.85)` | Card background with backdrop blur |
 | `--card-border` | `rgba(32,200,140,0.12)` | Card-specific border (slightly dimmer than `--border`) |
+
+---
+
+*README covers UI and structure. Mathematical/functional documentation to follow.*
