@@ -878,10 +878,12 @@
 <nav>
   <div class="nav-logo">Fourier<span>.</span>Series</div>
   <ul class="nav-links">
-    <li><a href="#concept">Concept</a></li>
+    <li><a href="#concept">Introduction</a></li>
+    <li><a href="#dirichlet">Dirichlet's</a></li>
     <li><a href="#builder">Wave Builder</a></li>
     <li><a href="#noise">Noise Cancel</a></li>
     <li><a href="#frequency">Freq Domain</a></li>
+    <li><a href="#apps">Applications</a></li>
     <li><a href="#quiz">Quiz</a></li>
   </ul>
 </nav>
@@ -912,7 +914,7 @@
 
 <!-- CONCEPT -->
 <section id="concept" class="fade-in">
-  <div class="sec-tag">Module 01</div>
+  <div class="sec-tag">Module 01 — Introduction</div>
   <h2>What is the Fourier Series?</h2>
   <p class="sec-desc">
     Any periodic function f(x) defined on the interval [c, c + 2L] can be expressed as an infinite sum of sinusoidal components — sines and cosines — each scaled by a Fourier coefficient.
@@ -1049,10 +1051,78 @@
 
 <div class="sep"></div>
 
+<!-- DIRICHLET'S CONDITIONS -->
+<section id="dirichlet" class="fade-in">
+  <div class="sec-tag">Module 02 — Requirements</div>
+  <h2>Dirichlet's Conditions</h2>
+  <p class="sec-desc">
+    A Fourier Series is only defined and valid when the function satisfies all of the following Dirichlet's Conditions.
+  </p>
+
+  <div style="background:var(--card); border:1px solid var(--card-border); border-radius:12px; padding:2rem; max-width:860px;">
+    <div style="font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--green); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.75rem;">
+      <span style="display:inline-block; width:2rem; height:1px; background:var(--green);"></span>
+      CONDITIONS FOR EXISTENCE OF FOURIER SERIES
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:1rem;">
+
+      <div style="display:flex; gap:1.25rem; align-items:flex-start; background:rgba(32,200,140,0.03); border:1px solid rgba(32,200,140,0.1); border-radius:8px; padding:1rem 1.25rem;">
+        <div style="flex-shrink:0; width:32px; height:32px; border-radius:6px; background:rgba(32,200,140,0.1); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.75rem; font-weight:700; color:var(--green);">1</div>
+        <p style="font-size:0.9rem; color:var(--text); line-height:1.75; margin:0;">
+          <em>f</em>(<em>x</em>) is a <strong style="color:var(--green); font-weight:500;">periodic function</strong> defined on the interval
+          <span style="font-family:'Space Mono',monospace; font-size:0.85rem; color:var(--cyan);">[c, c + 2L]</span>.
+        </p>
+      </div>
+
+      <div style="display:flex; gap:1.25rem; align-items:flex-start; background:rgba(32,200,140,0.03); border:1px solid rgba(32,200,140,0.1); border-radius:8px; padding:1rem 1.25rem;">
+        <div style="flex-shrink:0; width:32px; height:32px; border-radius:6px; background:rgba(32,200,140,0.1); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.75rem; font-weight:700; color:var(--green);">2</div>
+        <p style="font-size:0.9rem; color:var(--text); line-height:1.75; margin:0;">
+          <em>f</em>(<em>x</em>) is <strong style="color:var(--green); font-weight:500;">finite</strong> and <strong style="color:var(--green); font-weight:500;">single valued</strong>.
+        </p>
+      </div>
+
+      <div style="display:flex; gap:1.25rem; align-items:flex-start; background:rgba(32,200,140,0.03); border:1px solid rgba(32,200,140,0.1); border-radius:8px; padding:1rem 1.25rem;">
+        <div style="flex-shrink:0; width:32px; height:32px; border-radius:6px; background:rgba(32,200,140,0.1); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.75rem; font-weight:700; color:var(--green);">3</div>
+        <p style="font-size:0.9rem; color:var(--text); line-height:1.75; margin:0;">
+          <em>f</em>(<em>x</em>) has its <strong style="color:var(--green); font-weight:500;">integral</strong> within the given interval of
+          <strong><em style="font-family:'Space Mono',monospace; font-size:0.9rem; color:var(--amber);">x</em></strong>.
+        </p>
+      </div>
+
+      <div style="display:flex; gap:1.25rem; align-items:flex-start; background:rgba(32,200,140,0.03); border:1px solid rgba(32,200,140,0.1); border-radius:8px; padding:1rem 1.25rem;">
+        <div style="flex-shrink:0; width:32px; height:32px; border-radius:6px; background:rgba(32,200,140,0.1); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.75rem; font-weight:700; color:var(--green);">4</div>
+        <p style="font-size:0.9rem; color:var(--text); line-height:1.75; margin:0;">
+          <em>f</em>(<em>x</em>) has at most a <strong style="color:var(--green); font-weight:500;">finite number of finite discontinuities</strong> in the interval of
+          <strong><em style="font-family:'Space Mono',monospace; font-size:0.9rem; color:var(--amber);">x</em></strong>.
+        </p>
+      </div>
+
+      <div style="display:flex; gap:1.25rem; align-items:flex-start; background:rgba(32,200,140,0.03); border:1px solid rgba(32,200,140,0.1); border-radius:8px; padding:1rem 1.25rem;">
+        <div style="flex-shrink:0; width:32px; height:32px; border-radius:6px; background:rgba(32,200,140,0.1); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.75rem; font-weight:700; color:var(--green);">5</div>
+        <p style="font-size:0.9rem; color:var(--text); line-height:1.75; margin:0;">
+          <em>f</em>(<em>x</em>) has at most a <strong style="color:var(--green); font-weight:500;">finite number of maxima and minima</strong> in the given interval of
+          <strong><em style="font-family:'Space Mono',monospace; font-size:0.9rem; color:var(--amber);">x</em></strong>.
+        </p>
+      </div>
+
+    </div>
+
+    <div style="margin-top:1.5rem; padding:0.85rem 1.1rem; border-radius:8px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.15);">
+      <span style="font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--cyan); letter-spacing:0.1em;">NOTE — </span>
+      <span style="font-size:0.8rem; color:var(--text-muted); line-height:1.65;">
+        If any one of these conditions is violated, the Fourier Series representation of <em>f</em>(<em>x</em>) does not exist. Most physically realizable signals in engineering satisfy all five conditions.
+      </span>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
 <!-- WAVE BUILDER -->
 <section id="builder" class="full-width fade-in">
   <div style="max-width:1200px; margin:0 auto;">
-    <div class="sec-tag">Module 02 — Interactive</div>
+    <div class="sec-tag">Module 03 — Interactive</div>
     <h2>Wave Builder</h2>
     <p class="sec-desc">
       Drag the sliders to adjust the amplitude of each harmonic. Watch the composite wave update in real time — this is Fourier Synthesis in action.
@@ -1080,14 +1150,14 @@
 
     <!-- Right: Visualization Panel -->
     <div style="display:flex; flex-direction:column; gap:1rem; height:100%; justify-content:space-between;">
-      <div style="display:flex; flex-direction:column; gap:1rem;">
+      <div style="display:flex; flex-direction:column; gap:1rem; flex:1; min-height:0;">
         <div class="sig-wrap">
           <div class="sig-label" style="color:var(--green);">COMPOSITE WAVE f(t)</div>
           <canvas id="builderCanvas" height="220" style="width:100%; background:var(--bg2);"></canvas>
         </div>
-        <div class="sig-wrap">
+        <div class="sig-wrap" style="flex:1; min-height:0;">
           <div class="sig-label" style="color:var(--cyan);">FREQUENCY SPECTRUM</div>
-          <canvas id="spectrumCanvas" height="88" style="width:100%; background:var(--bg2);"></canvas>
+          <canvas id="spectrumCanvas" height="88" style="width:100%; height:100%; background:var(--bg2); display:block;"></canvas>
         </div>
         <div class="stats-row">
           <div class="stat-pill">
@@ -1164,7 +1234,7 @@
 
 <!-- NOISE CANCELLATION -->
 <section id="noise" class="fade-in">
-  <div class="sec-tag">Module 03 — Core Application</div>
+  <div class="sec-tag">Module 04 — Core Application</div>
   <h2>Noise Cancellation</h2>
   <p class="sec-desc">
     Fourier Series lets us identify noise frequencies in the spectrum and cancel them selectively — leaving the clean signal intact. Adjust the noise level and watch the cancellation work.
@@ -1246,7 +1316,7 @@
 
 <!-- FREQUENCY DOMAIN -->
 <section id="frequency" class="fade-in">
-  <div class="sec-tag">Module 04 — Visualization</div>
+  <div class="sec-tag">Module 05 — Visualization</div>
   <h2>Time vs Frequency Domain</h2>
   <p class="sec-desc">
     The same signal looks completely different depending on how you look at it. Time domain shows amplitude over time; frequency domain reveals which frequencies are present.
@@ -1290,7 +1360,7 @@
 
 <!-- APPLICATIONS -->
 <section id="apps" class="fade-in">
-  <div class="sec-tag">Module 05</div>
+  <div class="sec-tag">Module 06</div>
   <h2>Real-World Applications</h2>
   <p class="sec-desc">Fourier Series is the mathematical backbone of modern signal processing — present in virtually every technology we use.</p>
 
@@ -1332,7 +1402,7 @@
 
 <!-- QUIZ -->
 <section id="quiz" class="fade-in">
-  <div class="sec-tag">Module 06 — Test Knowledge</div>
+  <div class="sec-tag">Module 07 — Test Knowledge</div>
   <h2>Faculty Quiz Bank</h2>
   <p class="sec-desc">Use these questions to assess student understanding of Fourier Series concepts in lectures or assignments.</p>
 
@@ -1343,6 +1413,7 @@
 
 <footer>
   <div class="foot-logo">FOURIER.SERIES</div>
+  <p>Interactive Signal Processing · Educational Platform</p>
 </footer>
 
 <!-- BACK TO TOP BUTTON -->
@@ -1359,12 +1430,16 @@ function getW(canvas) {
 }
 function resizeCanvas(canvas) {
   const w = getW(canvas);
-  if (canvas.width !== w * devicePixelRatio) {
-    canvas.width = w * devicePixelRatio;
-    canvas.height = canvas.offsetHeight * devicePixelRatio;
-    canvas.getContext('2d').scale(devicePixelRatio, devicePixelRatio);
+  const h = parseInt(canvas.getAttribute('height')) || 200;
+  const dpr = window.devicePixelRatio || 1;
+  const targetW = Math.round(w * dpr);
+  const targetH = Math.round(h * dpr);
+  if (canvas.width !== targetW || canvas.height !== targetH) {
+    canvas.width = targetW;
+    canvas.height = targetH;
+    canvas.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
   }
-  return { w, h: canvas.offsetHeight };
+  return { w, h };
 }
 function drawGrid(ctx, w, h, color = 'rgba(32,200,140,0.05)') {
   ctx.strokeStyle = color;
@@ -1687,13 +1762,13 @@ function animateBuilder() {
 
   // Spectrum bars
   const specCtx = spectrumCanvas.getContext('2d');
-  const sw = spectrumCanvas.offsetWidth || spectrumCanvas.clientWidth || 600;
-  const sh = spectrumCanvas.offsetHeight || spectrumCanvas.clientHeight || 185;
+  const sw = spectrumCanvas.offsetWidth || 600;
+  const sh = spectrumCanvas.offsetHeight || parseInt(spectrumCanvas.getAttribute('height')) || 88;
   const dpr = window.devicePixelRatio || 1;
   if (spectrumCanvas.width !== Math.round(sw * dpr) || spectrumCanvas.height !== Math.round(sh * dpr)) {
     spectrumCanvas.width = Math.round(sw * dpr);
     spectrumCanvas.height = Math.round(sh * dpr);
-    specCtx.scale(dpr, dpr);
+    specCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
   specCtx.clearRect(0, 0, sw, sh);
   drawGrid(specCtx, sw, sh, 'rgba(32,200,140,0.04)');
@@ -1765,25 +1840,25 @@ function animateNoise() {
   ['cleanCanvas','noisyCanvas','noiseCanvas','recoveredCanvas'].forEach(id => resizeCanvas(document.getElementById(id)));
 
   const cCtx = document.getElementById('cleanCanvas').getContext('2d');
-  const { w: cw, h: ch } = { w: document.getElementById('cleanCanvas').offsetWidth, h: document.getElementById('cleanCanvas').offsetHeight };
+  const { w: cw, h: ch } = resizeCanvas(document.getElementById('cleanCanvas'));
   cCtx.clearRect(0, 0, cw, ch);
   drawGrid(cCtx, cw, ch);
   drawWave(cCtx, cw, ch, t => cleanSignal(t + noiseT) * scale, '#20c88c', 2);
 
   const nCtx = document.getElementById('noisyCanvas').getContext('2d');
-  const { w: nw, h: nh } = { w: document.getElementById('noisyCanvas').offsetWidth, h: document.getElementById('noisyCanvas').offsetHeight };
+  const { w: nw, h: nh } = resizeCanvas(document.getElementById('noisyCanvas'));
   nCtx.clearRect(0, 0, nw, nh);
   drawGrid(nCtx, nw, nh);
   drawWave(nCtx, nw, nh, t => (cleanSignal(t+noiseT) + noiseWave(t+noiseT, na, nf)) * scale, '#ff4d6a', 2);
 
   const noCtx = document.getElementById('noiseCanvas').getContext('2d');
-  const { w: now, h: noh } = { w: document.getElementById('noiseCanvas').offsetWidth, h: document.getElementById('noiseCanvas').offsetHeight };
+  const { w: now, h: noh } = resizeCanvas(document.getElementById('noiseCanvas'));
   noCtx.clearRect(0, 0, now, noh);
   drawGrid(noCtx, now, noh);
   drawWave(noCtx, now, noh, t => noiseWave(t+noiseT, na, nf) * scale, '#00e5ff', 1.5, 0.8);
 
   const rCtx = document.getElementById('recoveredCanvas').getContext('2d');
-  const { w: rw, h: rh } = { w: document.getElementById('recoveredCanvas').offsetWidth, h: document.getElementById('recoveredCanvas').offsetHeight };
+  const { w: rw, h: rh } = resizeCanvas(document.getElementById('recoveredCanvas'));
   rCtx.clearRect(0, 0, rw, rh);
   drawGrid(rCtx, rw, rh);
   drawWave(rCtx, rw, rh, t => (cleanSignal(t+noiseT) + noiseWave(t+noiseT, na, nf) - cs*noiseWave(t+noiseT, na, nf)) * scale, '#20c88c', 2.5);
@@ -1809,16 +1884,14 @@ const freqCanvas = document.getElementById('freqCanvas');
 let fdT = 0;
 
 function animateFreqDomain() {
-  resizeCanvas(timeCanvas); resizeCanvas(freqCanvas);
-  const { w: tw, h: th } = { w: timeCanvas.offsetWidth, h: timeCanvas.offsetHeight };
+  const { w: tw, h: th } = resizeCanvas(timeCanvas);
   const tCtx = timeCanvas.getContext('2d');
   tCtx.clearRect(0, 0, tw, th);
   drawGrid(tCtx, tw, th);
-  // composite with noise
   drawWave(tCtx, tw, th, t => (Math.sin(2*Math.PI*t+fdT) + 0.3*Math.sin(2*Math.PI*3*t+fdT*3) + 0.2*Math.sin(2*Math.PI*7*t+fdT*7)), '#20c88c', 2);
 
+  const { w: fw, h: fh } = resizeCanvas(freqCanvas);
   const fCtx = freqCanvas.getContext('2d');
-  const { w: fw, h: fh } = { w: freqCanvas.offsetWidth, h: freqCanvas.offsetHeight };
   fCtx.clearRect(0, 0, fw, fh);
   drawGrid(fCtx, fw, fh);
   // Frequency bars
