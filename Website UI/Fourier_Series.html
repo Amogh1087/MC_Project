@@ -1,0 +1,2131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fourier Series — Signal & Noise</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080c12' rx='6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Arial Black%2C sans-serif' font-weight='900' font-size='14' letter-spacing='-0.5' fill='%2320c88c'%3EFS%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c12;
+    --bg2: #0d1420;
+    --bg3: #111927;
+    --grid: rgba(32, 200, 140, 0.06);
+    --border: rgba(32, 200, 140, 0.15);
+    --green: #20c88c;
+    --green-dim: rgba(32, 200, 140, 0.4);
+    --cyan: #00e5ff;
+    --cyan-dim: rgba(0, 229, 255, 0.35);
+    --amber: #ffb830;
+    --amber-dim: rgba(255, 184, 48, 0.35);
+    --red: #ff4d6a;
+    --red-dim: rgba(255, 77, 106, 0.35);
+    --purple: #b388ff;
+    --text: #e8f0ea;
+    --text-muted: #7a9b8a;
+    --text-dim: #3d5a47;
+    --card: rgba(13, 20, 32, 0.85);
+    --card-border: rgba(32, 200, 140, 0.12);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--green) var(--bg2);
+  }
+
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--green); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #28e89e; }
+
+  /* === GRID BG === */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+      linear-gradient(rgba(32,200,140,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(32,200,140,0.02) 1px, transparent 1px);
+    background-size: 60px 60px, 60px 60px, 12px 12px, 12px 12px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* === NAV === */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 3rem;
+    background: rgba(8, 12, 18, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .nav-logo span { color: var(--text-muted); }
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--green); }
+
+  /* === SECTIONS === */
+  section {
+    position: relative;
+    z-index: 1;
+    padding: 6rem 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  section.full-width { max-width: 100%; padding: 6rem 4rem; }
+
+  /* === HERO === */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding-top: 8rem;
+    max-width: 100%;
+    padding-left: 5%;
+    padding-right: 5%;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(32, 200, 140, 0.08);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 0.35rem 1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    margin-bottom: 2rem;
+    width: fit-content;
+  }
+  .hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: blink 1.5s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2.5rem, 6vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+  h1 .line1 { color: var(--text); display: block; }
+  h1 .line2 {
+    display: block;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--green);
+  }
+  h1 .accent { color: var(--green); }
+
+  .hero-desc {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    max-width: 560px;
+    line-height: 1.75;
+    margin-bottom: 3rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .hero-ctas {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 4rem;
+    justify-content: center;
+  }
+  .btn-primary {
+    background: var(--green);
+    color: #060a0d;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-primary:hover { background: #28e89e; transform: translateY(-1px); }
+  .btn-outline {
+    background: transparent;
+    color: var(--green);
+    border: 1px solid var(--green);
+    padding: 0.8rem 2rem;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-outline:hover { background: rgba(32,200,140,0.08); }
+
+  /* Hero canvas area */
+  .hero-canvas-wrap {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg2);
+    width: 100%;
+  }
+  .hero-canvas-wrap canvas { display: block; width: 100%; }
+  .canvas-label {
+    position: absolute;
+    top: 12px; left: 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+  }
+
+  /* === SECTION HEADERS === */
+  .sec-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .sec-tag::before {
+    content: '';
+    width: 2rem;
+    height: 1px;
+    background: var(--green);
+  }
+  h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.6rem, 3vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 1rem;
+  }
+  .sec-desc {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.75;
+    max-width: 620px;
+    margin-bottom: 3rem;
+  }
+
+  /* === CARDS === */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    backdrop-filter: blur(6px);
+  }
+  .card-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* === CONCEPT SECTION === */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+  @media(max-width:768px){ .concept-grid { grid-template-columns:1fr; } }
+  .concept-formula {
+    background: rgba(32, 200, 140, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 2rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
+    color: var(--cyan);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .concept-formula .formula-main {
+    font-size: 1.4rem;
+    color: var(--green);
+    margin-bottom: 0.5rem;
+  }
+  .formula-note {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0;
+    margin-top: 0.5rem;
+  }
+
+  .step-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+  @media(max-width:900px){ .step-cards { grid-template-columns:1fr; } }
+  .step-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .step-card:hover { border-color: var(--green-dim); }
+  .step-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: rgba(32,200,140,0.1);
+    position: absolute;
+    top: 0.5rem;
+    right: 1rem;
+  }
+  .step-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: rgba(32,200,140,0.1);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+  .step-card h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+  .step-card p {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  /* === INTERACTIVE BUILDER === */
+  #builder {
+    max-width: 100%;
+    padding: 6rem 4rem;
+    background: linear-gradient(180deg, transparent, rgba(32,200,140,0.02), transparent);
+  }
+  .builder-layout {
+    display: grid;
+    grid-template-columns: 360px minmax(0, 1fr);
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    align-items: stretch;
+  }
+  @media(max-width:1000px){ .builder-layout { grid-template-columns:1fr; } }
+
+  .harmonics-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .harmonic-row {
+    background: rgba(32,200,140,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    transition: border-color 0.2s;
+  }
+  .harmonic-row.active { border-color: var(--green-dim); }
+  .harmonic-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+  .harmonic-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--green);
+    letter-spacing: 0.08em;
+  }
+  .harmonic-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+  }
+  .harmonic-row input[type=range] {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    height: 3px;
+    border-radius: 3px;
+    background: var(--text-dim);
+    outline: none;
+    margin: 0.2rem 0 0;
+    cursor: pointer;
+  }
+  .harmonic-row input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--green);
+    cursor: pointer;
+  }
+  .harmonic-row.h1 input[type=range]::-webkit-slider-thumb { background: var(--green); }
+  .harmonic-row.h2 input[type=range]::-webkit-slider-thumb { background: var(--cyan); }
+  .harmonic-row.h3 input[type=range]::-webkit-slider-thumb { background: var(--amber); }
+  .harmonic-row.h4 input[type=range]::-webkit-slider-thumb { background: var(--purple); }
+  .harmonic-row.h5 input[type=range]::-webkit-slider-thumb { background: var(--red); }
+
+  .add-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 0.65rem;
+    color: var(--text-muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    margin-top: 0.25rem;
+  }
+  .add-btn:hover { border-color: var(--green); color: var(--green); background: rgba(32,200,140,0.04); }
+
+  /* === NOISE CANCELLATION === */
+  .noise-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  @media(max-width:900px){ .noise-layout { grid-template-columns:1fr; } }
+  .noise-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .control-group {
+    background: rgba(32,200,140,0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  .ctrl-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+  }
+  .ctrl-label span { color: var(--green); }
+  input[type=range].main-ctrl {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    height: 3px;
+    border-radius: 3px;
+    background: rgba(32,200,140,0.2);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range].main-ctrl::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--cyan);
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--cyan-dim);
+  }
+
+  .signal-canvases {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .sig-wrap {
+    position: relative;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .sig-label {
+    position: absolute;
+    top: 10px; left: 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    z-index: 2;
+  }
+  .sig-label .dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  /* === FREQUENCY DOMAIN === */
+  .freq-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  @media(max-width:900px){ .freq-grid { grid-template-columns:1fr; } }
+
+  /* === APPLICATIONS === */
+  .apps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  @media(max-width:900px){ .apps-grid { grid-template-columns:1fr 1fr; } }
+  @media(max-width:600px){ .apps-grid { grid-template-columns:1fr; } }
+  .app-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 1.75rem;
+    transition: all 0.3s;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+  }
+  .app-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top left, rgba(32,200,140,0.06), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .app-card:hover { border-color: var(--green-dim); transform: translateY(-3px); }
+  .app-card:hover::before { opacity: 1; }
+  .app-icon {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+  .app-card h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--green);
+    margin-bottom: 0.5rem;
+  }
+  .app-card p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  /* === QUIZ SECTION === */
+  .quiz-wrap {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 2rem;
+  }
+  .quiz-q {
+    font-size: 0.95rem;
+    color: var(--text);
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+    line-height: 1.6;
+  }
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+  }
+  .q-opt {
+    background: rgba(32,200,140,0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+  .q-opt:hover { border-color: var(--green-dim); color: var(--text); }
+  .q-opt.correct { border-color: var(--green); color: var(--green); background: rgba(32,200,140,0.08); }
+  .q-opt.wrong { border-color: var(--red); color: var(--red); background: rgba(255,77,106,0.08); }
+  .quiz-feedback {
+    font-size: 0.8rem;
+    line-height: 1.65;
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+    background: rgba(32,200,140,0.06);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    display: none;
+  }
+  .quiz-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1.25rem;
+  }
+  .quiz-progress {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+  }
+
+  /* === SEPARATOR === */
+  .sep {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* === FOOTER === */
+  footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 2rem 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(8,12,18,0.8);
+  }
+  footer .foot-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    color: var(--green);
+    letter-spacing: 0.15em;
+  }
+  footer p {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* === SCAN LINE EFFECT === */
+  .scan-overlay {
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.03) 3px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* Tab system for frequency visualizer */
+  .tab-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    padding: 0.4rem 1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .tab-btn.active { background: rgba(32,200,140,0.1); color: var(--green); }
+
+  /* stat pills */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 0;
+  }
+  .stat-pill {
+    background: rgba(32,200,140,0.05);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .stat-pill .sp-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .stat-pill .sp-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--green);
+    line-height: 1;
+  }
+  .stat-pill.cyan { background: rgba(0,229,255,0.04); border-color: rgba(0,229,255,0.15); }
+  .stat-pill.cyan .sp-val { color: var(--cyan); }
+  .stat-pill.amber { background: rgba(255,184,48,0.04); border-color: rgba(255,184,48,0.15); }
+  .stat-pill.amber .sp-val { color: var(--amber); }
+  .stat-pill.red .sp-val { color: var(--red); }
+
+  /* Scroll fade-in */
+  .fade-in { opacity: 0; transform: translateY(24px); transition: all 0.6s ease; }
+  .fade-in.visible { opacity: 1; transform: none; }
+
+  /* Tooltip */
+  .tooltip-wrap { position: relative; display: inline-block; }
+  .tooltip-wrap .tt {
+    display: none;
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    z-index: 10;
+    font-family: 'DM Sans', sans-serif;
+    pointer-events: none;
+  }
+  .tooltip-wrap:hover .tt { display: block; }
+
+  button { font-family: 'DM Sans', sans-serif; }
+
+  /* === BACK TO TOP === */
+  #backToTop {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 2000;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background: rgba(8, 12, 18, 0.9);
+    border: 2px solid #20c88c;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 12px rgba(32, 200, 140, 0.2), inset 0 0 12px rgba(32, 200, 140, 0.04);
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease, background 0.2s, box-shadow 0.2s;
+  }
+  #backToTop.btt-visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  #backToTop:hover {
+    background: rgba(32, 200, 140, 0.12);
+    box-shadow: 0 0 20px rgba(32, 200, 140, 0.35), inset 0 0 12px rgba(32, 200, 140, 0.08);
+  }
+  #backToTop:active { transform: translateY(2px); }
+  /* === THD ACCORDION === */
+  .thd-accordion {
+    background: rgba(255,184,48,0.04);
+    border: 1px solid rgba(255,184,48,0.18);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .thd-accordion-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 1.25rem 1.5rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+    text-align: center;
+  }
+  .thd-accordion-header:hover {
+    background: rgba(255,184,48,0.06);
+  }
+  .thd-accordion-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--amber);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .thd-accordion-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    color: rgba(255,184,48,0.5);
+    letter-spacing: 0.04em;
+  }
+  .thd-accordion-arrow {
+    font-size: 0.65rem;
+    color: rgba(255,184,48,0.6);
+    margin-top: 0.2rem;
+    transition: transform 0.35s ease;
+    line-height: 1;
+  }
+  .thd-accordion.open .thd-accordion-arrow {
+    transform: rotate(180deg);
+  }
+  .thd-accordion-body {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.45s ease, opacity 0.35s ease;
+  }
+  .thd-accordion.open .thd-accordion-body {
+    max-height: 900px;
+    opacity: 1;
+  }
+  .thd-accordion-inner {
+    padding: 0 1.75rem 1.75rem;
+    border-top: 1px solid rgba(255,184,48,0.12);
+  }
+
+</style>
+</head>
+<body>
+
+<div class="scan-overlay"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Fourier<span>.</span>Series</div>
+  <ul class="nav-links">
+    <li><a href="#concept">Introduction</a></li>
+    <li><a href="#dirichlet">Dirichlet's</a></li>
+    <li><a href="#builder">Wave Builder</a></li>
+    <li><a href="#noise">Noise Cancel</a></li>
+    <li><a href="#frequency">Freq Domain</a></li>
+    <li><a href="#apps">Applications</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-badge">INTERACTIVE LEARNING PLATFORM · SIGNAL PROCESSING</div>
+  <h1>
+    <span class="line1">Decompose</span>
+    <span class="line2">Any Signal</span>
+    <span class="accent" style="font-size:clamp(1rem,2vw,1.8rem); display:block; margin-top:0.5rem; letter-spacing:0.02em;">with Fourier Series</span>
+  </h1>
+  <p class="hero-desc">
+    Every complex waveform in nature — sound, light, electrical noise — is a sum of simple sine waves.
+    Explore, build, and cancel signals interactively.
+  </p>
+  <div class="hero-ctas">
+    <a href="#concept" class="btn-primary">Learn the Theory</a>
+    <a href="#builder" class="btn-outline">Launch Wave Builder</a>
+  </div>
+  <div class="hero-canvas-wrap">
+    <div class="canvas-label">LIVE SIGNAL — ω(t)</div>
+    <canvas id="heroCanvas" height="180"></canvas>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- CONCEPT -->
+<section id="concept" class="fade-in">
+  <div class="sec-tag">Module 01 — Introduction</div>
+  <h2>What is the Fourier Series?</h2>
+  <p class="sec-desc">
+    Any periodic function f(x) defined on the interval [c, c + 2L] can be expressed as an infinite sum of sinusoidal components — sines and cosines — each scaled by a Fourier coefficient.
+  </p>
+
+  <div class="concept-grid">
+    <div>
+      <div class="concept-formula">
+        <div class="formula-main">f(x) = a₀/2 + Σ[aₙcos(nπx/L) + bₙsin(nπx/L)]</div>
+        <div style="color:var(--text-muted); font-size:0.92rem; margin-top:0.5rem;">where n = 1, 2, 3, …, ∞ &nbsp;·&nbsp; interval [c, c + 2L]</div>
+        <div style="display:grid; grid-template-columns:1fr; gap:0.6rem; margin-top:1.25rem; width:100%; text-align:left;">
+          <div style="font-size:0.88rem; color:var(--green);">a₀ = (1/L) ∫<sub style="font-size:0.75rem;">c</sub><sup style="font-size:0.75rem;">c+2L</sup> f(x) dx</div>
+          <div style="font-size:0.88rem; color:var(--amber);">aₙ = (1/L) ∫<sub style="font-size:0.75rem;">c</sub><sup style="font-size:0.75rem;">c+2L</sup> f(x) cos(nπx/L) dx</div>
+          <div style="font-size:0.88rem; color:var(--cyan);">bₙ = (1/L) ∫<sub style="font-size:0.75rem;">c</sub><sup style="font-size:0.75rem;">c+2L</sup> f(x) sin(nπx/L) dx</div>
+        </div>
+        <div class="formula-note">L is the half-period &nbsp;·&nbsp; c is the start of the interval &nbsp;·&nbsp; a₀/2 is the DC (mean) value</div>
+      </div>
+    </div>
+    <div style="height:100%;">
+      <canvas id="conceptCanvas" height="220" style="width:100%; height:100%; background:var(--bg2); border:1px solid var(--border); border-radius:10px;"></canvas>
+    </div>
+  </div>
+
+  <div class="step-cards">
+    <div class="step-card fade-in">
+      <div class="step-num">01</div>
+      <div class="step-icon">〜</div>
+      <h3>Identify the Period</h3>
+      <p>Any repeating signal has a fundamental period T. The fundamental frequency is f₀ = 1/T — this is the first harmonic (n=1).</p>
+    </div>
+    <div class="step-card fade-in">
+      <div class="step-num">02</div>
+      <div class="step-icon">∑</div>
+      <h3>Compute Coefficients</h3>
+      <p>The Fourier coefficients aₙ and bₙ tell us how much of each harmonic frequency is present in the original signal.</p>
+    </div>
+    <div class="step-card fade-in">
+      <div class="step-num">03</div>
+      <div class="step-icon">◈</div>
+      <h3>Reconstruct or Filter</h3>
+      <p>Retain only the desired harmonics to reconstruct a clean signal. Remove or invert noise harmonics to cancel unwanted frequencies.</p>
+    </div>
+  </div>
+
+  <!-- Conceptual Visualization — Harmonics building a complex wave -->
+  <div class="card fade-in" style="padding:0; overflow:hidden;">
+    <div style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--border);">
+      <div class="card-title">HOW HARMONICS BUILD A COMPLEX SIGNAL</div>
+      <p style="font-size:0.92rem; color:var(--text-muted); line-height:1.75; margin-top:0.5rem; max-width:680px;">
+        Every complex wave is simply a sum of pure sine waves. Each sine wave is called a <strong style="color:var(--text); font-weight:500;">harmonic</strong> — they combine together to form the final signal you see in green.
+      </p>
+    </div>
+
+    <!-- Legend row -->
+    <div style="display:flex; gap:1.5rem; align-items:center; padding:0.75rem 1.5rem; border-bottom:1px solid var(--border); flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:0.5rem;">
+        <span style="display:inline-block; width:28px; height:2px; background:var(--green); border-radius:1px;"></span>
+        <span style="font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--green); letter-spacing:0.08em;">n=1 · FUNDAMENTAL</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:0.5rem;">
+        <span style="display:inline-block; width:28px; height:2px; background:var(--cyan); border-radius:1px; opacity:0.8;"></span>
+        <span style="font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--cyan); letter-spacing:0.08em;">n=3 · 3RD HARMONIC</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:0.5rem;">
+        <span style="display:inline-block; width:28px; height:2px; background:var(--amber); border-radius:1px; opacity:0.8;"></span>
+        <span style="font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--amber); letter-spacing:0.08em;">n=5 · 5TH HARMONIC</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:0.5rem;">
+        <span style="display:inline-block; width:28px; height:3px; background:var(--green); border-radius:1px; box-shadow:0 0 6px var(--green);"></span>
+        <span style="font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--green); letter-spacing:0.08em;">SUM = COMPLEX SIGNAL</span>
+      </div>
+    </div>
+
+    <canvas id="conceptDecompCanvas" height="200" style="width:100%; background:var(--bg2);"></canvas>
+
+    <!-- Bottom nudge -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:0.85rem 1.5rem; background:rgba(32,200,140,0.03); border-top:1px solid var(--border); flex-wrap:wrap; gap:0.75rem;">
+      <p style="font-size:0.82rem; color:var(--text-muted); margin:0;">
+        Want to <strong style="color:var(--text); font-weight:500;">control each harmonic yourself</strong> and see the result live?
+      </p>
+      <a href="#builder" style="font-family:'Space Mono',monospace; font-size:0.62rem; color:var(--green); letter-spacing:0.1em; text-decoration:none; border:1px solid var(--green); border-radius:6px; padding:0.4rem 0.9rem; transition:all 0.2s;" onmouseover="this.style.background='rgba(32,200,140,0.1)'" onmouseout="this.style.background='transparent'">
+        OPEN WAVE BUILDER →
+      </a>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- DIRICHLET'S CONDITIONS -->
+<section id="dirichlet" class="fade-in">
+  <div class="sec-tag">Module 02 — Requirements</div>
+  <h2>Dirichlet's Conditions</h2>
+  <p class="sec-desc">
+    A Fourier Series is only defined and valid when the function satisfies all of the following Dirichlet's Conditions.
+  </p>
+
+  <div style="background:var(--card); border:1px solid var(--card-border); border-radius:12px; padding:2rem; max-width:860px;">
+    <div style="font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--green); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.75rem;">
+      <span style="display:inline-block; width:2rem; height:1px; background:var(--green);"></span>
+      CONDITIONS FOR EXISTENCE OF FOURIER SERIES
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:1rem;">
+
+      <div style="display:flex; gap:1.25rem; align-items:flex-start; background:rgba(32,200,140,0.03); border:1px solid rgba(32,200,140,0.1); border-radius:8px; padding:1rem 1.25rem;">
+        <div style="flex-shrink:0; width:32px; height:32px; border-radius:6px; background:rgba(32,200,140,0.1); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.75rem; font-weight:700; color:var(--green);">1</div>
+        <p style="font-size:0.9rem; color:var(--text); line-height:1.75; margin:0;">
+          <em>f</em>(<em>x</em>) is a <strong style="color:var(--green); font-weight:500;">periodic function</strong> defined on the interval
+          <span style="font-family:'Space Mono',monospace; font-size:0.85rem; color:var(--cyan);">[c, c + 2L]</span>.
+        </p>
+      </div>
+
+      <div style="display:flex; gap:1.25rem; align-items:flex-start; background:rgba(32,200,140,0.03); border:1px solid rgba(32,200,140,0.1); border-radius:8px; padding:1rem 1.25rem;">
+        <div style="flex-shrink:0; width:32px; height:32px; border-radius:6px; background:rgba(32,200,140,0.1); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.75rem; font-weight:700; color:var(--green);">2</div>
+        <p style="font-size:0.9rem; color:var(--text); line-height:1.75; margin:0;">
+          <em>f</em>(<em>x</em>) is <strong style="color:var(--green); font-weight:500;">finite</strong> and <strong style="color:var(--green); font-weight:500;">single valued</strong>.
+        </p>
+      </div>
+
+      <div style="display:flex; gap:1.25rem; align-items:flex-start; background:rgba(32,200,140,0.03); border:1px solid rgba(32,200,140,0.1); border-radius:8px; padding:1rem 1.25rem;">
+        <div style="flex-shrink:0; width:32px; height:32px; border-radius:6px; background:rgba(32,200,140,0.1); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.75rem; font-weight:700; color:var(--green);">3</div>
+        <p style="font-size:0.9rem; color:var(--text); line-height:1.75; margin:0;">
+          <em>f</em>(<em>x</em>) has its <strong style="color:var(--green); font-weight:500;">integral</strong> within the given interval of
+          <strong><em style="font-family:'Space Mono',monospace; font-size:0.9rem; color:var(--amber);">x</em></strong>.
+        </p>
+      </div>
+
+      <div style="display:flex; gap:1.25rem; align-items:flex-start; background:rgba(32,200,140,0.03); border:1px solid rgba(32,200,140,0.1); border-radius:8px; padding:1rem 1.25rem;">
+        <div style="flex-shrink:0; width:32px; height:32px; border-radius:6px; background:rgba(32,200,140,0.1); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.75rem; font-weight:700; color:var(--green);">4</div>
+        <p style="font-size:0.9rem; color:var(--text); line-height:1.75; margin:0;">
+          <em>f</em>(<em>x</em>) has at most a <strong style="color:var(--green); font-weight:500;">finite number of finite discontinuities</strong> in the interval of
+          <strong><em style="font-family:'Space Mono',monospace; font-size:0.9rem; color:var(--amber);">x</em></strong>.
+        </p>
+      </div>
+
+      <div style="display:flex; gap:1.25rem; align-items:flex-start; background:rgba(32,200,140,0.03); border:1px solid rgba(32,200,140,0.1); border-radius:8px; padding:1rem 1.25rem;">
+        <div style="flex-shrink:0; width:32px; height:32px; border-radius:6px; background:rgba(32,200,140,0.1); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:0.75rem; font-weight:700; color:var(--green);">5</div>
+        <p style="font-size:0.9rem; color:var(--text); line-height:1.75; margin:0;">
+          <em>f</em>(<em>x</em>) has at most a <strong style="color:var(--green); font-weight:500;">finite number of maxima and minima</strong> in the given interval of
+          <strong><em style="font-family:'Space Mono',monospace; font-size:0.9rem; color:var(--amber);">x</em></strong>.
+        </p>
+      </div>
+
+    </div>
+
+    <div style="margin-top:1.5rem; padding:0.85rem 1.1rem; border-radius:8px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.15);">
+      <span style="font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--cyan); letter-spacing:0.1em;">NOTE — </span>
+      <span style="font-size:0.8rem; color:var(--text-muted); line-height:1.65;">
+        If any one of these conditions is violated, the Fourier Series representation of <em>f</em>(<em>x</em>) does not exist. Most physically realizable signals in engineering satisfy all five conditions.
+      </span>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- WAVE BUILDER -->
+<section id="builder" class="full-width fade-in">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div class="sec-tag">Module 03 — Interactive</div>
+    <h2>Wave Builder</h2>
+    <p class="sec-desc">
+      Drag the sliders to adjust the amplitude of each harmonic. Watch the composite wave update in real time — this is Fourier Synthesis in action.
+    </p>
+  </div>
+
+  <div class="builder-layout">
+    <!-- Left: Control Console -->
+    <div style="display:flex; flex-direction:column; gap:1rem;">
+      <div class="card">
+        <div class="card-title">WAVE TYPE</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+          <button class="tab-btn active" id="wt-square" style="border:1px solid var(--border); border-radius:8px; padding:0.5rem 0;">Square</button>
+          <button class="tab-btn" id="wt-sawtooth" style="border:1px solid var(--border); border-radius:8px; padding:0.5rem 0;">Sawtooth</button>
+          <button class="tab-btn" id="wt-triangle" style="border:1px solid var(--border); border-radius:8px; padding:0.5rem 0;">Triangle</button>
+          <button class="tab-btn" id="wt-custom" style="border:1px solid var(--border); border-radius:8px; padding:0.5rem 0;">Custom</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">HARMONIC AMPLITUDES</div>
+        <div class="harmonics-list" id="harmonicsList"></div>
+        <button class="add-btn" id="addHarmonicBtn">+ ADD HARMONIC</button>
+      </div>
+    </div>
+
+    <!-- Right: Visualization Panel -->
+    <div style="display:flex; flex-direction:column; gap:1rem; height:100%; justify-content:space-between;">
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        <div class="sig-wrap">
+          <div class="sig-label" style="color:var(--green);">COMPOSITE WAVE f(t)</div>
+          <canvas id="builderCanvas" height="220" style="width:100%; background:var(--bg2);"></canvas>
+        </div>
+        <div class="sig-wrap" id="spectrumWrap">
+          <div class="sig-label" style="color:var(--cyan);">FREQUENCY SPECTRUM</div>
+          <canvas id="spectrumCanvas" height="88" style="width:100%; background:var(--bg2);"></canvas>
+        </div>
+        <div class="stats-row">
+          <div class="stat-pill">
+            <div class="sp-label">Harmonics</div>
+            <div class="sp-val" id="numHarmonics">1</div>
+          </div>
+          <div class="stat-pill cyan">
+            <div class="sp-label">Peak Amp</div>
+            <div class="sp-val" id="peakAmp">1.0</div>
+          </div>
+          <div class="stat-pill amber">
+            <div class="sp-label">THD %</div>
+            <div class="sp-val" id="thdVal">0.0</div>
+          </div>
+        </div>
+      </div>
+      <div class="thd-accordion" id="thdAccordion">
+
+        <!-- Collapsed header — fully centred -->
+        <div class="thd-accordion-header" id="thdAccordionHeader">
+          <div class="thd-accordion-title">About THD %</div>
+          <div class="thd-accordion-sub">Signal distortion analysis</div>
+          <div class="thd-accordion-arrow">▼</div>
+        </div>
+
+        <!-- Expandable body -->
+        <div class="thd-accordion-body" id="thdAccordionBody">
+          <div class="thd-accordion-inner">
+
+            <!-- Explanation -->
+            <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.85; margin:1.25rem 0 1.5rem;">
+              <strong style="color:var(--text); font-weight:600;">Total Harmonic Distortion</strong> measures how much of a signal's energy comes from harmonics (n&nbsp;≥&nbsp;2) relative to the fundamental (n&nbsp;=&nbsp;1). A lower THD means a purer, cleaner signal.
+            </p>
+
+            <!-- Formula block -->
+            <div style="background:rgba(255,184,48,0.07); border:1px solid rgba(255,184,48,0.2); border-radius:8px; padding:1.1rem 1.5rem; margin-bottom:1.5rem; text-align:center;">
+              <div style="font-family:'Space Mono',monospace; font-size:0.58rem; color:rgba(255,184,48,0.5); letter-spacing:0.14em; margin-bottom:0.5rem;">FORMULA</div>
+              <div style="font-family:'Space Mono',monospace; font-size:1rem; color:var(--amber); letter-spacing:0.04em; line-height:1.6;">
+                THD = √(a₂² + a₃² + … + aₙ²) / a₁ × 100%
+              </div>
+            </div>
+
+            <!-- Quality levels label -->
+            <div style="font-family:'Space Mono',monospace; font-size:0.58rem; color:rgba(255,184,48,0.5); letter-spacing:0.14em; margin-bottom:0.85rem;">QUALITY LEVELS</div>
+
+            <!-- Interpretation list -->
+            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.65rem;">
+              <li style="display:flex; align-items:flex-start; gap:0.85rem; padding:0.7rem 0.9rem; background:rgba(255,184,48,0.03); border:1px solid rgba(255,184,48,0.1); border-radius:8px;">
+                <span style="font-family:'Space Mono',monospace; font-size:0.72rem; color:var(--amber); flex-shrink:0; padding-top:0.05rem;">0%</span>
+                <span style="font-size:0.9rem; color:var(--text-muted); line-height:1.6;"><strong style="color:var(--text); font-weight:500;">THD = 0%</strong> — pure sine wave; only the fundamental is present.</span>
+              </li>
+              <li style="display:flex; align-items:flex-start; gap:0.85rem; padding:0.7rem 0.9rem; background:rgba(255,184,48,0.03); border:1px solid rgba(255,184,48,0.1); border-radius:8px;">
+                <span style="font-family:'Space Mono',monospace; font-size:0.72rem; color:var(--amber); flex-shrink:0; padding-top:0.05rem;">&lt;1%</span>
+                <span style="font-size:0.9rem; color:var(--text-muted); line-height:1.6;"><strong style="color:var(--text); font-weight:500;">THD &lt; 1%</strong> — excellent quality; used in precision audio and power systems.</span>
+              </li>
+              <li style="display:flex; align-items:flex-start; gap:0.85rem; padding:0.7rem 0.9rem; background:rgba(255,184,48,0.03); border:1px solid rgba(255,184,48,0.1); border-radius:8px;">
+                <span style="font-family:'Space Mono',monospace; font-size:0.72rem; color:var(--amber); flex-shrink:0; padding-top:0.05rem;">1–5%</span>
+                <span style="font-size:0.9rem; color:var(--text-muted); line-height:1.6;"><strong style="color:var(--text); font-weight:500;">THD 1–5%</strong> — acceptable for most consumer electronics.</span>
+              </li>
+              <li style="display:flex; align-items:flex-start; gap:0.85rem; padding:0.7rem 0.9rem; background:rgba(255,184,48,0.03); border:1px solid rgba(255,184,48,0.1); border-radius:8px;">
+                <span style="font-family:'Space Mono',monospace; font-size:0.72rem; color:var(--amber); flex-shrink:0; padding-top:0.05rem;">&gt;10%</span>
+                <span style="font-size:0.9rem; color:var(--text-muted); line-height:1.6;"><strong style="color:var(--text); font-weight:500;">THD &gt; 10%</strong> — clearly audible distortion; typical of square and sawtooth waves.</span>
+              </li>
+            </ul>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- NOISE CANCELLATION -->
+<section id="noise" class="fade-in">
+  <div class="sec-tag">Module 04 — Core Application</div>
+  <h2>Noise Cancellation</h2>
+  <p class="sec-desc">
+    Fourier Series lets us identify noise frequencies in the spectrum and cancel them selectively — leaving the clean signal intact. Adjust the noise level and watch the cancellation work.
+  </p>
+
+  <div style="background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.15); border-radius:8px; padding:1rem; margin-bottom:1.5rem;">
+    <div style="font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--cyan); margin-bottom:0.5rem; letter-spacing:0.08em;">HOW IT WORKS</div>
+    <p style="font-size:0.78rem; color:var(--text-muted); line-height:1.65;">
+      The noisy signal (red) is analyzed using Fourier coefficients. Frequencies belonging to the noise band are identified in the spectrum. An anti-phase signal is generated and added — canceling the noise and recovering the clean signal (green).
+    </p>
+  </div>
+
+  <div class="noise-layout">
+    <div class="noise-controls">
+      <div class="control-group">
+        <div class="ctrl-label">NOISE AMPLITUDE <span id="noiseAmpVal">0.50</span></div>
+        <input type="range" class="main-ctrl" id="noiseAmp" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <div class="control-group">
+        <div class="ctrl-label">NOISE FREQ BAND <span id="noiseBandVal">5 Hz</span></div>
+        <input type="range" class="main-ctrl" id="noiseBand" min="1" max="20" step="1" value="5">
+      </div>
+      <div class="control-group">
+        <div class="ctrl-label">HARMONICS TO CANCEL <span id="cancelTermsVal">5</span></div>
+        <input type="range" class="main-ctrl" id="cancelTerms" min="1" max="20" step="1" value="5">
+      </div>
+      <div class="control-group">
+        <div class="ctrl-label">CANCELLATION STRENGTH <span id="cancelStrVal">100%</span></div>
+        <input type="range" class="main-ctrl" id="cancelStr" min="0" max="100" step="1" value="100">
+      </div>
+
+      <!-- SNR meter -->
+      <div class="card" style="margin-top:0.5rem;">
+        <div class="card-title">SIGNAL-TO-NOISE RATIO</div>
+        <div style="display:flex; align-items:baseline; gap:0.5rem; margin-bottom:0.5rem;">
+          <span style="font-family:'Orbitron',monospace; font-size:2rem; font-weight:700; color:var(--green);" id="snrVal">∞</span>
+          <span style="font-size:0.8rem; color:var(--text-muted);">dB</span>
+        </div>
+        <div style="height:4px; background:var(--text-dim); border-radius:2px; overflow:hidden;">
+          <div style="height:100%; background:var(--green); border-radius:2px; transition:width 0.3s;" id="snrBar" class="snr-fill"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:0.3rem;">
+          <span style="font-size:0.6rem; color:var(--text-dim); font-family:'Space Mono',monospace;">-20dB</span>
+          <span style="font-size:0.6rem; color:var(--text-dim); font-family:'Space Mono',monospace;">+60dB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="signal-canvases">
+      <div class="sig-wrap">
+        <div class="sig-label">
+          <span class="dot" style="background:var(--green);"></span>CLEAN SIGNAL
+        </div>
+        <canvas id="cleanCanvas" height="120" style="width:100%; background:var(--bg2);"></canvas>
+      </div>
+      <div class="sig-wrap">
+        <div class="sig-label">
+          <span class="dot" style="background:var(--red);"></span>NOISY SIGNAL
+        </div>
+        <canvas id="noisyCanvas" height="120" style="width:100%; background:var(--bg2);"></canvas>
+      </div>
+      <div class="sig-wrap">
+        <div class="sig-label">
+          <span class="dot" style="background:var(--cyan);"></span>NOISE COMPONENT
+        </div>
+        <canvas id="noiseCanvas" height="80" style="width:100%; background:var(--bg2);"></canvas>
+      </div>
+      <div class="sig-wrap" style="border-color:var(--green-dim);">
+        <div class="sig-label">
+          <span class="dot" style="background:var(--green);"></span>RECOVERED SIGNAL (after FS cancellation)
+        </div>
+        <canvas id="recoveredCanvas" height="120" style="width:100%; background:var(--bg2);"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- FREQUENCY DOMAIN -->
+<section id="frequency" class="fade-in">
+  <div class="sec-tag">Module 05 — Visualization</div>
+  <h2>Time vs Frequency Domain</h2>
+  <p class="sec-desc">
+    The same signal looks completely different depending on how you look at it. Time domain shows amplitude over time; frequency domain reveals which frequencies are present.
+  </p>
+
+  <div class="freq-grid">
+    <div class="card">
+      <div class="card-title">TIME DOMAIN — Amplitude vs Time</div>
+      <canvas id="timeCanvas" height="200" style="width:100%; background:var(--bg2); border-radius:6px; margin-top:0.5rem;"></canvas>
+      <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem; line-height:1.6;">What you hear: a waveform showing how air pressure (or voltage) varies with time. Complex to analyze noise from this view alone.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">FREQUENCY DOMAIN — Magnitude vs Frequency</div>
+      <canvas id="freqCanvas" height="200" style="width:100%; background:var(--bg2); border-radius:6px; margin-top:0.5rem;"></canvas>
+      <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem; line-height:1.6;">Fourier transform view: each spike is a harmonic. Noise appears as unexpected spikes — easy to identify and remove selectively.</p>
+    </div>
+  </div>
+
+  <div style="margin-top:2rem;" class="card fade-in">
+    <div class="card-title">PHASOR ANIMATION — Rotating Vectors</div>
+    <div style="display:flex; gap:2rem; align-items:center;">
+      <canvas id="phasorCanvas" width="280" height="280" style="background:var(--bg2); border-radius:8px; flex-shrink:0;"></canvas>
+      <div>
+        <h3 style="font-size:1rem; color:var(--text); margin-bottom:0.75rem;">How Phasors Build Waves</h3>
+        <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.7; margin-bottom:1rem;">
+          Each harmonic is a rotating phasor (vector). The tip of each phasor traces a circle at its harmonic frequency. By chaining phasors tip-to-tail, their combined endpoint traces out the Fourier series approximation.
+        </p>
+        <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.7;">
+          The <span style="color:var(--green);">green phasor</span> is the fundamental (n=1), <span style="color:var(--cyan);">cyan</span> is n=3, <span style="color:var(--amber);">amber</span> is n=5. Their sum traces the <span style="color:var(--red);">red path</span>.
+        </p>
+        <div style="margin-top:1rem; display:flex; gap:0.5rem;">
+          <button class="btn-primary" id="phasorPlay" style="font-size:0.8rem; padding:0.5rem 1.2rem;">Pause</button>
+          <button class="btn-outline" id="phasorReset" style="font-size:0.8rem; padding:0.5rem 1.2rem;">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- APPLICATIONS -->
+<section id="apps" class="fade-in">
+  <div class="sec-tag">Module 06</div>
+  <h2>Real-World Applications</h2>
+  <p class="sec-desc">Fourier Series is the mathematical backbone of modern signal processing — present in virtually every technology we use.</p>
+
+  <div class="apps-grid">
+    <div class="app-card fade-in">
+      <span class="app-icon">🎧</span>
+      <h3>Active Noise Cancellation</h3>
+      <p>Headphones sample ambient noise, compute its Fourier components, generate the exact anti-phase wave, and combine them — canceling noise at the ear.</p>
+    </div>
+    <div class="app-card fade-in">
+      <span class="app-icon">📡</span>
+      <h3>Radio & Wireless</h3>
+      <p>AM/FM modulation, filtering adjacent channels, and demodulating signals all rely on isolating specific Fourier frequency components.</p>
+    </div>
+    <div class="app-card fade-in">
+      <span class="app-icon">🏥</span>
+      <h3>Medical Imaging (MRI)</h3>
+      <p>MRI scanners collect data in the frequency domain (k-space). Inverse Fourier transforms reconstruct the image you see on screen.</p>
+    </div>
+    <div class="app-card fade-in">
+      <span class="app-icon">🎵</span>
+      <h3>Audio Compression (MP3)</h3>
+      <p>MP3 uses Modified Discrete Cosine Transform (a Fourier variant) to discard inaudible frequency components, reducing file size by ~90%.</p>
+    </div>
+    <div class="app-card fade-in">
+      <span class="app-icon">📸</span>
+      <h3>Image Compression (JPEG)</h3>
+      <p>JPEG applies DCT (Discrete Cosine Transform) to 8×8 image blocks, encoding the dominant frequency patterns while discarding the rest.</p>
+    </div>
+    <div class="app-card fade-in">
+      <span class="app-icon">⚡</span>
+      <h3>Power Grid Analysis</h3>
+      <p>Harmonics in power lines cause efficiency losses. Fourier analysis identifies distorting harmonics; active filters cancel them to clean the grid.</p>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- QUIZ -->
+<section id="quiz" class="fade-in">
+  <div class="sec-tag">Module 07 — Test Knowledge</div>
+  <h2>Faculty Quiz Bank</h2>
+  <p class="sec-desc">Use these questions to assess student understanding of Fourier Series concepts in lectures or assignments.</p>
+
+  <div class="quiz-wrap">
+    <div id="quizContent"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-logo">FOURIER.SERIES</div>
+</footer>
+
+<!-- BACK TO TOP BUTTON -->
+<button id="backToTop" aria-label="Back to top">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 12V4M8 4L4 8M8 4L12 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+
+<script>
+// ===== UTILITIES =====
+function getW(canvas) {
+  return canvas.getBoundingClientRect().width || canvas.offsetWidth || 800;
+}
+function resizeCanvas(canvas) {
+  const w = getW(canvas);
+  const h = parseInt(canvas.getAttribute('height')) || 200;
+  const dpr = window.devicePixelRatio || 1;
+  const targetW = Math.round(w * dpr);
+  const targetH = Math.round(h * dpr);
+  if (canvas.width !== targetW || canvas.height !== targetH) {
+    canvas.width = targetW;
+    canvas.height = targetH;
+    canvas.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  return { w, h };
+}
+function drawGrid(ctx, w, h, color = 'rgba(32,200,140,0.05)') {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 0.5;
+  const step = 30;
+  for (let x = 0; x < w; x += step) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+  }
+  for (let y = 0; y < h; y += step) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(32,200,140,0.1)';
+  ctx.beginPath(); ctx.moveTo(0, h/2); ctx.lineTo(w, h/2); ctx.stroke();
+}
+function drawWave(ctx, w, h, fn, color, lineWidth = 1.5, alpha = 1) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 4;
+  ctx.beginPath();
+  for (let i = 0; i <= w; i++) {
+    const t = i / w;
+    const y = h/2 - fn(t) * (h/2 - 24);
+    if (i === 0) ctx.moveTo(i, y); else ctx.lineTo(i, y);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ===== HERO CANVAS =====
+const heroCanvas = document.getElementById('heroCanvas');
+let heroT = 0;
+function animateHero() {
+  const { w, h } = resizeCanvas(heroCanvas);
+  const ctx = heroCanvas.getContext('2d');
+  ctx.clearRect(0, 0, w, h);
+  drawGrid(ctx, w, h, 'rgba(32,200,140,0.04)');
+  // draw multiple waves
+  const waves = [
+    { f: 1, a: 0.6, color: '#20c88c', phase: 0 },
+    { f: 3, a: 0.2, color: '#00e5ff', phase: Math.PI/4 },
+    { f: 5, a: 0.12, color: '#ffb830', phase: Math.PI/3 },
+  ];
+  waves.forEach(({f, a, color, phase}) => {
+    drawWave(ctx, w, h, t => a * Math.sin(2*Math.PI*f*t + phase + heroT*f), color, 1.5, 0.5);
+  });
+  // composite
+  drawWave(ctx, w, h, t => {
+    return waves.reduce((s, {f, a, phase}) => s + a * Math.sin(2*Math.PI*f*t + phase + heroT*f), 0);
+  }, '#20c88c', 2.5);
+  heroT += 0.008;
+  requestAnimationFrame(animateHero);
+}
+animateHero();
+
+// ===== CONCEPT CANVAS — animated sine decomposition =====
+const conceptCanvas = document.getElementById('conceptCanvas');
+let conceptT = 0;
+function animateConcept() {
+  const { w, h } = resizeCanvas(conceptCanvas);
+  const ctx = conceptCanvas.getContext('2d');
+  ctx.clearRect(0, 0, w, h);
+  drawGrid(ctx, w, h);
+  const harmonics = [1, 2, 3, 4, 5];
+  const colors = ['#20c88c','#00e5ff','#ffb830','#b388ff','#ff4d6a'];
+  harmonics.forEach((n, i) => {
+    const a = 1/n;
+    drawWave(ctx, w, h, t => a * Math.sin(2*Math.PI*n*t + conceptT), colors[i], 1.2, 0.5);
+  });
+  // sum
+  drawWave(ctx, w, h, t => harmonics.reduce((s,n) => s + (1/n)*Math.sin(2*Math.PI*n*t + conceptT), 0) * 0.55, '#20c88c', 2.5);
+  conceptT += 0.012;
+  requestAnimationFrame(animateConcept);
+}
+animateConcept();
+
+// ===== DECOMP CANVAS — Fourier approx of square wave =====
+// ===== CONCEPTUAL DECOMPOSITION — Fundamental + Harmonics = Complex Signal =====
+const conceptDecompCanvas = document.getElementById('conceptDecompCanvas');
+let conceptDecompT = 0;
+
+function animateConceptDecomp() {
+  const { w, h } = resizeCanvas(conceptDecompCanvas);
+  const ctx = conceptDecompCanvas.getContext('2d');
+  ctx.clearRect(0, 0, w, h);
+  drawGrid(ctx, w, h);
+
+  const t0 = conceptDecompT;
+
+  // n=1 fundamental — green
+  drawWave(ctx, w, h, t => Math.sin(2*Math.PI*1*t + t0) * 0.55, '#20c88c', 1.8, 0.55);
+  // n=3 — cyan
+  drawWave(ctx, w, h, t => (1/3)*Math.sin(2*Math.PI*3*t + t0) * 0.55, '#00e5ff', 1.4, 0.5);
+  // n=5 — amber
+  drawWave(ctx, w, h, t => (1/5)*Math.sin(2*Math.PI*5*t + t0) * 0.55, '#ffb830', 1.2, 0.45);
+
+  // Composite sum — bright green, bold
+  drawWave(ctx, w, h, t =>
+    (Math.sin(2*Math.PI*1*t + t0) + (1/3)*Math.sin(2*Math.PI*3*t + t0) + (1/5)*Math.sin(2*Math.PI*5*t + t0)) * 0.55,
+    '#20c88c', 3, 1
+  );
+
+  conceptDecompT += 0.012;
+  requestAnimationFrame(animateConceptDecomp);
+}
+animateConceptDecomp();
+
+// ===== WAVE BUILDER =====
+const HARMONIC_COLORS = ['#20c88c','#00e5ff','#ffb830','#b388ff','#ff4d6a',
+                         '#20c88c','#00e5ff','#ffb830','#b388ff','#ff4d6a',
+                         '#20c88c','#00e5ff','#ffb830','#b388ff','#ff4d6a',
+                         '#20c88c','#00e5ff','#ffb830','#b388ff','#ff4d6a'];
+const MAX_HARMONICS = 10;
+let harmonics = [1,3,5,7,9].map(n => ({ n, amp: +(1/n).toFixed(3) }));
+
+function renderHarmonicsList() {
+  const list = document.getElementById('harmonicsList');
+  list.innerHTML = '';
+  harmonics.forEach((h, i) => {
+    const color = HARMONIC_COLORS[i];
+    const div = document.createElement('div');
+    div.className = `harmonic-row h${i+1} ${h.amp > 0 ? 'active' : ''}`;
+    div.innerHTML = `
+      <div class="harmonic-header">
+        <span class="harmonic-label" style="color:${color}">n = ${h.n}</span>
+        <div style="display:flex;align-items:center;gap:0.6rem;">
+          <span class="harmonic-val" id="ampVal${i}">${h.amp.toFixed(2)}</span>
+          ${harmonics.length > 1 ? `<button data-rm="${i}" style="background:none;border:none;color:rgba(255,77,106,0.6);font-size:0.75rem;cursor:pointer;padding:0;line-height:1;" title="Remove">✕</button>` : ''}
+        </div>
+      </div>
+      <input type="range" min="0" max="1" step="0.01" value="${h.amp}" data-idx="${i}">
+    `;
+    div.querySelector('input').addEventListener('input', function() {
+      harmonics[this.dataset.idx].amp = parseFloat(this.value);
+      document.getElementById('ampVal'+this.dataset.idx).textContent = parseFloat(this.value).toFixed(2);
+      updateBuilderStats();
+    });
+    const rmBtn = div.querySelector('[data-rm]');
+    if (rmBtn) rmBtn.addEventListener('click', function() {
+      harmonics.splice(parseInt(this.dataset.rm), 1);
+      renderHarmonicsList();
+    });
+    list.appendChild(div);
+  });
+  // Show/hide add button and limit note
+  const addBtn = document.getElementById('addHarmonicBtn');
+  const presentNs = new Set(harmonics.map(h => h.n));
+  const allFull = [...Array(MAX_HARMONICS)].every((_, i) => presentNs.has(i + 1));
+  addBtn.style.display = allFull ? 'none' : 'block';
+  let limitNote = document.getElementById('harmonicLimit');
+  if (allFull) {
+    if (!limitNote) {
+      limitNote = document.createElement('div');
+      limitNote.id = 'harmonicLimit';
+      limitNote.style.cssText = 'font-family:"Space Mono",monospace;font-size:0.6rem;color:var(--text-dim);text-align:center;padding:0.5rem;';
+      limitNote.textContent = 'Maximum 10 harmonics reached';
+      addBtn.parentNode.insertBefore(limitNote, addBtn);
+    }
+  } else if (limitNote) {
+    limitNote.remove();
+  }
+  updateBuilderStats();
+}
+
+function updateBuilderStats() {
+  document.getElementById('numHarmonics').textContent = harmonics.length;
+  const peak = Math.max(...harmonics.map(h => h.amp));
+  document.getElementById('peakAmp').textContent = peak.toFixed(2);
+  const fundamental = harmonics[0]?.amp || 0;
+  const distortion = harmonics.slice(1).reduce((s, h) => s + h.amp*h.amp, 0);
+  const thd = fundamental > 0 ? (Math.sqrt(distortion)/fundamental*100).toFixed(1) : '0.0';
+  document.getElementById('thdVal').textContent = thd;
+  updateSpectrumHeight();
+}
+
+// ===== SPECTRUM HEIGHT MANAGER =====
+// Height is set explicitly so adding/removing harmonics grows/shrinks the box
+// cleanly without the canvas intrinsic-height lock-in bug.
+let spectrumBaseH = null;   // captured once from the rendered layout
+const EXTRA_PER_HARMONIC = 64;  // px added per harmonic beyond 5
+
+function updateSpectrumHeight() {
+  const specWrap  = document.getElementById('spectrumWrap');
+  const specCanvas = document.getElementById('spectrumCanvas');
+  if (!specWrap || !specCanvas) return;
+
+  // Capture base height from the live layout on first call
+  if (spectrumBaseH === null) {
+    const h = specWrap.offsetHeight;
+    if (h > 0) spectrumBaseH = h;
+    else return; // layout not ready yet — will be called again via updateBuilderStats
+  }
+
+  const extra = Math.max(0, harmonics.length - 5);
+  const newH   = spectrumBaseH + extra * EXTRA_PER_HARMONIC;
+
+  specWrap.style.height  = newH + 'px';
+  specCanvas.setAttribute('height', newH);
+}
+
+document.getElementById('addHarmonicBtn').addEventListener('click', () => {
+  const presentNs = new Set(harmonics.map(h => h.n));
+  // Find the first missing n from 1..MAX_HARMONICS
+  let nextN = null;
+  for (let n = 1; n <= MAX_HARMONICS; n++) {
+    if (!presentNs.has(n)) { nextN = n; break; }
+  }
+  if (nextN === null) return;
+  harmonics.push({ n: nextN, amp: +(1 / nextN).toFixed(3) });
+  // Keep the list sorted by n
+  harmonics.sort((a, b) => a.n - b.n);
+  renderHarmonicsList();
+});
+
+// Wave type presets
+function setWaveType(type) {
+  document.querySelectorAll('#builder .tab-btn').forEach(b => b.classList.remove('active'));
+  if (type === 'square') {
+    // Square wave: odd harmonics only, amplitudes 4/(nπ) normalised to 1 for n=1
+    harmonics = [1,3,5,7,9].map(n => ({ n, amp: +(1/n).toFixed(3) }));
+    document.getElementById('wt-square').classList.add('active');
+  } else if (type === 'sawtooth') {
+    // Sawtooth: all harmonics, amplitudes 1/n
+    harmonics = Array.from({length:10}, (_,i) => ({ n: i+1, amp: +(1/(i+1)).toFixed(3) }));
+    document.getElementById('wt-sawtooth').classList.add('active');
+  } else if (type === 'triangle') {
+    // Triangle: odd harmonics, amplitudes 1/n²
+    harmonics = [1,3,5,7,9].map(n => ({ n, amp: +(1/(n*n)).toFixed(3) }));
+    document.getElementById('wt-triangle').classList.add('active');
+  } else {
+    harmonics = [{ n: 1, amp: 1.0 }];
+    document.getElementById('wt-custom').classList.add('active');
+  }
+  renderHarmonicsList();
+}
+document.getElementById('wt-square').addEventListener('click', () => setWaveType('square'));
+document.getElementById('wt-sawtooth').addEventListener('click', () => setWaveType('sawtooth'));
+document.getElementById('wt-triangle').addEventListener('click', () => setWaveType('triangle'));
+document.getElementById('wt-custom').addEventListener('click', () => setWaveType('custom'));
+
+const builderCanvas = document.getElementById('builderCanvas');
+const spectrumCanvas = document.getElementById('spectrumCanvas');
+let builderT = 0;
+
+function getBuilderWave(t) {
+  return harmonics.reduce((s, h) => s + h.amp * Math.sin(2*Math.PI*h.n*t), 0);
+}
+function maxAmp() {
+  return harmonics.reduce((s, h) => s + h.amp, 0) || 1;
+}
+
+function animateBuilder() {
+  // Main wave
+  const { w, h } = resizeCanvas(builderCanvas);
+  const ctx = builderCanvas.getContext('2d');
+  ctx.clearRect(0, 0, w, h);
+  drawGrid(ctx, w, h);
+  const scale = 1 / maxAmp();
+  // Individual harmonics
+  harmonics.forEach((hm, i) => {
+    const color = HARMONIC_COLORS[i % HARMONIC_COLORS.length];
+    drawWave(ctx, w, h, t => hm.amp * Math.sin(2*Math.PI*hm.n*t + builderT*hm.n) * scale, color, 1, 0.3);
+  });
+  // Composite
+  drawWave(ctx, w, h, t => getBuilderWave(t + builderT/(2*Math.PI)) * scale, '#20c88c', 2.5);
+
+  // Spectrum bars
+  const specCtx = spectrumCanvas.getContext('2d');
+  const sw = spectrumCanvas.offsetWidth || 600;
+  const sh = parseInt(spectrumCanvas.getAttribute('height')) || 88;
+  const dpr = window.devicePixelRatio || 1;
+  if (spectrumCanvas.width !== Math.round(sw * dpr) || spectrumCanvas.height !== Math.round(sh * dpr)) {
+    spectrumCanvas.width = Math.round(sw * dpr);
+    spectrumCanvas.height = Math.round(sh * dpr);
+    specCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  specCtx.clearRect(0, 0, sw, sh);
+  drawGrid(specCtx, sw, sh, 'rgba(32,200,140,0.04)');
+  const barW = Math.min(40, sw / (harmonics.length + 2));
+  const padTop = 48;
+  const padBot = 22;
+  const maxBarH = sh - padTop - padBot;
+  harmonics.forEach((hm, i) => {
+    const color = HARMONIC_COLORS[i % HARMONIC_COLORS.length];
+    const x = (i + 1) * (sw / (harmonics.length + 1));
+    const barH = hm.amp * maxBarH;
+    const barTop = sh - padBot - barH;
+    specCtx.fillStyle = color + '33';
+    specCtx.fillRect(x - barW/2, barTop, barW, barH);
+    specCtx.fillStyle = color;
+    specCtx.fillRect(x - barW/2, barTop, barW, 3);
+    specCtx.fillStyle = color;
+    specCtx.font = '10px Space Mono, monospace';
+    specCtx.textAlign = 'center';
+    specCtx.fillText(`n=${hm.n}`, x, sh - 6);
+    specCtx.fillText(hm.amp.toFixed(2), x, barTop - 6);
+  });
+
+  builderT += 0.015;
+  requestAnimationFrame(animateBuilder);
+}
+renderHarmonicsList();
+animateBuilder();
+// Capture the reference spectrum height once the layout has painted
+requestAnimationFrame(() => requestAnimationFrame(() => { updateSpectrumHeight(); }));
+
+// ===== NOISE CANCELLATION =====
+const noiseAmpSlider = document.getElementById('noiseAmp');
+const noiseBandSlider = document.getElementById('noiseBand');
+const cancelTermsSlider = document.getElementById('cancelTerms');
+const cancelStrSlider = document.getElementById('cancelStr');
+let noiseT = 0;
+
+function noiseWave(t, amp, freq) {
+  return amp * (Math.sin(2*Math.PI*freq*t) + 0.4*Math.sin(2*Math.PI*freq*2.3*t) + 0.2*Math.sin(2*Math.PI*freq*3.7*t));
+}
+function cleanSignal(t) {
+  return Math.sin(2*Math.PI*t) * 0.7 + 0.3*Math.sin(2*Math.PI*3*t);
+}
+function computeSNR(cleanAmp, noiseAmp, cancelStr) {
+  const noisyPower = noiseAmp * noiseAmp;
+  const residual = noisyPower * (1 - cancelStr/100);
+  const cleanPower = 0.5;
+  if (residual < 0.0001) return Infinity;
+  return 10 * Math.log10(cleanPower / residual);
+}
+function updateSNR() {
+  const na = parseFloat(noiseAmpSlider.value);
+  const cs = parseInt(cancelStrSlider.value);
+  const snr = computeSNR(0.5, na, cs);
+  const el = document.getElementById('snrVal');
+  const bar = document.getElementById('snrBar');
+  if (!isFinite(snr)) { el.textContent = '∞'; bar.style.width = '100%'; }
+  else {
+    el.textContent = Math.max(-20, Math.min(60, snr)).toFixed(1);
+    bar.style.width = Math.min(100, Math.max(0, (snr+20)/80*100)) + '%';
+  }
+}
+
+function animateNoise() {
+  const na = parseFloat(noiseAmpSlider.value);
+  const nf = parseInt(noiseBandSlider.value);
+  const cs = parseInt(cancelStrSlider.value) / 100;
+  const scale = 1 / (1 + na);
+
+  ['cleanCanvas','noisyCanvas','noiseCanvas','recoveredCanvas'].forEach(id => resizeCanvas(document.getElementById(id)));
+
+  const cCtx = document.getElementById('cleanCanvas').getContext('2d');
+  const { w: cw, h: ch } = resizeCanvas(document.getElementById('cleanCanvas'));
+  cCtx.clearRect(0, 0, cw, ch);
+  drawGrid(cCtx, cw, ch);
+  drawWave(cCtx, cw, ch, t => cleanSignal(t + noiseT) * scale, '#20c88c', 2);
+
+  const nCtx = document.getElementById('noisyCanvas').getContext('2d');
+  const { w: nw, h: nh } = resizeCanvas(document.getElementById('noisyCanvas'));
+  nCtx.clearRect(0, 0, nw, nh);
+  drawGrid(nCtx, nw, nh);
+  drawWave(nCtx, nw, nh, t => (cleanSignal(t+noiseT) + noiseWave(t+noiseT, na, nf)) * scale, '#ff4d6a', 2);
+
+  const noCtx = document.getElementById('noiseCanvas').getContext('2d');
+  const { w: now, h: noh } = resizeCanvas(document.getElementById('noiseCanvas'));
+  noCtx.clearRect(0, 0, now, noh);
+  drawGrid(noCtx, now, noh);
+  drawWave(noCtx, now, noh, t => noiseWave(t+noiseT, na, nf) * scale, '#00e5ff', 1.5, 0.8);
+
+  const rCtx = document.getElementById('recoveredCanvas').getContext('2d');
+  const { w: rw, h: rh } = resizeCanvas(document.getElementById('recoveredCanvas'));
+  rCtx.clearRect(0, 0, rw, rh);
+  drawGrid(rCtx, rw, rh);
+  drawWave(rCtx, rw, rh, t => (cleanSignal(t+noiseT) + noiseWave(t+noiseT, na, nf) - cs*noiseWave(t+noiseT, na, nf)) * scale, '#20c88c', 2.5);
+
+  noiseT += 0.012;
+  updateSNR();
+  requestAnimationFrame(animateNoise);
+}
+animateNoise();
+
+[noiseAmpSlider, noiseBandSlider, cancelTermsSlider, cancelStrSlider].forEach(slider => {
+  slider.addEventListener('input', function() {
+    document.getElementById('noiseAmpVal').textContent = parseFloat(noiseAmpSlider.value).toFixed(2);
+    document.getElementById('noiseBandVal').textContent = noiseBandSlider.value + ' Hz';
+    document.getElementById('cancelTermsVal').textContent = cancelTermsSlider.value;
+    document.getElementById('cancelStrVal').textContent = cancelStrSlider.value + '%';
+  });
+});
+
+// ===== FREQUENCY DOMAIN =====
+const timeCanvas = document.getElementById('timeCanvas');
+const freqCanvas = document.getElementById('freqCanvas');
+let fdT = 0;
+
+function animateFreqDomain() {
+  const { w: tw, h: th } = resizeCanvas(timeCanvas);
+  const tCtx = timeCanvas.getContext('2d');
+  tCtx.clearRect(0, 0, tw, th);
+  drawGrid(tCtx, tw, th);
+  drawWave(tCtx, tw, th, t => (Math.sin(2*Math.PI*t+fdT) + 0.3*Math.sin(2*Math.PI*3*t+fdT*3) + 0.2*Math.sin(2*Math.PI*7*t+fdT*7)), '#20c88c', 2);
+
+  const { w: fw, h: fh } = resizeCanvas(freqCanvas);
+  const fCtx = freqCanvas.getContext('2d');
+  fCtx.clearRect(0, 0, fw, fh);
+  drawGrid(fCtx, fw, fh);
+  // Frequency bars
+  const freqs = [
+    {f:1, amp:1.0, color:'#20c88c'},
+    {f:3, amp:0.3, color:'#00e5ff'},
+    {f:7, amp:0.2, color:'#ffb830'},
+  ];
+  freqs.forEach(({f, amp, color}) => {
+    const x = (f / 10) * fw;
+    const bw = 8;
+    const bh = amp * (fh - 30);
+    fCtx.fillStyle = color + '44';
+    fCtx.fillRect(x - bw/2, fh - bh - 15, bw, bh);
+    fCtx.fillStyle = color;
+    fCtx.fillRect(x - bw/2, fh - bh - 15, bw, 3);
+    fCtx.font = '8px Space Mono';
+    fCtx.fillStyle = color;
+    fCtx.textAlign = 'center';
+    fCtx.fillText(`${f}Hz`, x, fh - 3);
+  });
+  // x-axis
+  fCtx.strokeStyle = 'rgba(32,200,140,0.2)';
+  fCtx.beginPath(); fCtx.moveTo(0, fh-15); fCtx.lineTo(fw, fh-15); fCtx.stroke();
+
+  fdT += 0.015;
+  requestAnimationFrame(animateFreqDomain);
+}
+animateFreqDomain();
+
+// ===== PHASOR ANIMATION =====
+const phasorCanvas = document.getElementById('phasorCanvas');
+const pCtx = phasorCanvas.getContext('2d');
+let phasorAngle = 0, phasorPaused = false;
+const phasorPath = [];
+const PHASORS = [
+  { n: 1, amp: 1.0,   color: '#20c88c' },
+  { n: 3, amp: 0.333, color: '#00e5ff' },
+  { n: 5, amp: 0.2,   color: '#ffb830' },
+];
+const PCENTER = { x: 120, y: 140 };
+const PSCALE = 70;
+
+function drawPhasor() {
+  const pw = phasorCanvas.width, ph = phasorCanvas.height;
+  pCtx.clearRect(0, 0, pw, ph);
+  // Grid
+  pCtx.strokeStyle = 'rgba(32,200,140,0.06)';
+  pCtx.lineWidth = 0.5;
+  for (let x = 0; x < pw; x += 20) { pCtx.beginPath(); pCtx.moveTo(x,0); pCtx.lineTo(x,ph); pCtx.stroke(); }
+  for (let y = 0; y < ph; y += 20) { pCtx.beginPath(); pCtx.moveTo(0,y); pCtx.lineTo(pw,y); pCtx.stroke(); }
+  // Circles
+  PHASORS.forEach(p => {
+    pCtx.strokeStyle = p.color + '22';
+    pCtx.lineWidth = 1;
+    pCtx.beginPath(); pCtx.arc(PCENTER.x, PCENTER.y, p.amp*PSCALE, 0, 2*Math.PI); pCtx.stroke();
+  });
+  // Center axes
+  pCtx.strokeStyle = 'rgba(32,200,140,0.15)'; pCtx.lineWidth = 1;
+  pCtx.beginPath(); pCtx.moveTo(PCENTER.x,0); pCtx.lineTo(PCENTER.x,ph); pCtx.stroke();
+  pCtx.beginPath(); pCtx.moveTo(0,PCENTER.y); pCtx.lineTo(pw,PCENTER.y); pCtx.stroke();
+
+  // Draw chained phasors
+  let cx = PCENTER.x, cy = PCENTER.y;
+  let sumY = 0;
+  PHASORS.forEach(p => {
+    const angle = phasorAngle * p.n;
+    const ex = cx + p.amp * PSCALE * Math.cos(angle);
+    const ey = cy - p.amp * PSCALE * Math.sin(angle);
+    pCtx.strokeStyle = p.color; pCtx.lineWidth = 2;
+    pCtx.beginPath(); pCtx.moveTo(cx, cy); pCtx.lineTo(ex, ey); pCtx.stroke();
+    pCtx.fillStyle = p.color;
+    pCtx.beginPath(); pCtx.arc(ex, ey, 3.5, 0, 2*Math.PI); pCtx.fill();
+    sumY -= p.amp * Math.sin(angle);
+    cx = ex; cy = ey;
+  });
+
+  // Trace path on right side
+  const traceX = 200;
+  const finalY = PCENTER.y + sumY * PSCALE;
+  phasorPath.push(finalY);
+  if (phasorPath.length > 200) phasorPath.shift();
+
+  // Connect to trace
+  pCtx.strokeStyle = 'rgba(255,77,106,0.4)'; pCtx.setLineDash([3,3]); pCtx.lineWidth = 0.8;
+  pCtx.beginPath(); pCtx.moveTo(cx, cy); pCtx.lineTo(traceX, phasorPath[phasorPath.length-1]); pCtx.stroke();
+  pCtx.setLineDash([]);
+
+  // Draw trace
+  pCtx.strokeStyle = '#ff4d6a'; pCtx.lineWidth = 2; pCtx.shadowColor = '#ff4d6a'; pCtx.shadowBlur = 3;
+  pCtx.beginPath();
+  phasorPath.forEach((py, i) => {
+    const x = traceX + i * (pw - traceX - 10) / 200;
+    if (i === 0) pCtx.moveTo(x, py); else pCtx.lineTo(x, py);
+  });
+  pCtx.stroke(); pCtx.shadowBlur = 0;
+
+  // Dot on trace
+  pCtx.fillStyle = '#ff4d6a';
+  pCtx.beginPath(); pCtx.arc(traceX, phasorPath[phasorPath.length-1], 4, 0, 2*Math.PI); pCtx.fill();
+
+  if (!phasorPaused) phasorAngle += 0.025;
+  requestAnimationFrame(drawPhasor);
+}
+drawPhasor();
+document.getElementById('phasorPlay').addEventListener('click', function() {
+  phasorPaused = !phasorPaused;
+  this.textContent = phasorPaused ? 'Play' : 'Pause';
+});
+document.getElementById('phasorReset').addEventListener('click', () => {
+  phasorAngle = 0; phasorPath.length = 0;
+});
+
+// ===== QUIZ =====
+const quizData = [
+  {
+    q: "A signal has a period T = 0.005 s. What is its fundamental frequency?",
+    opts: [
+      "500 Hz",
+      "5 Hz",
+      "200 Hz",
+      "0.005 Hz"
+    ],
+    correct: 2,
+    explanation: "Fundamental frequency f = 1/T = 1/0.005 = 200 Hz. Period and frequency are always reciprocals — halving the period doubles the frequency."
+  },
+  {
+    q: "The Fourier Series of a signal contains terms at 100 Hz, 200 Hz, and 300 Hz. Which is the fundamental frequency?",
+    opts: [
+      "300 Hz — it has the most energy",
+      "200 Hz — it is in the middle",
+      "100 Hz — it is the lowest, and the others are its multiples",
+      "Cannot be determined without amplitudes"
+    ],
+    correct: 2,
+    explanation: "The fundamental is always the lowest frequency present. 200 Hz = 2×100 Hz and 300 Hz = 3×100 Hz, so 100 Hz is the first harmonic (fundamental). The others are the 2nd and 3rd harmonics."
+  },
+  {
+    q: "Which waveform needs the MOST Fourier terms to look like itself in an approximation?",
+    opts: [
+      "A pure sine wave",
+      "A smooth cosine wave",
+      "A square wave",
+      "A slowly varying DC signal"
+    ],
+    correct: 2,
+    explanation: "A square wave has sharp, instant jumps (discontinuities). Representing sharp edges requires many high-frequency harmonics. A pure sine wave, by contrast, IS a single Fourier term — it needs exactly one."
+  },
+  {
+    q: "You double the amplitude of every harmonic in a Fourier Series. What happens to the resulting signal?",
+    opts: [
+      "Its frequency doubles",
+      "Its shape is preserved but its overall amplitude doubles",
+      "It becomes a sine wave",
+      "Its period halves"
+    ],
+    correct: 1,
+    explanation: "Scaling every coefficient by the same factor scales the output signal by that factor. The shape (ratio of harmonics) stays identical — only the overall magnitude changes. Frequency and period are unaffected."
+  },
+  {
+    q: "In noise cancellation, the anti-noise signal must be — compared to the noise.",
+    opts: [
+      "Identical in phase",
+      "At twice the frequency",
+      "Exactly 180° out of phase",
+      "At a lower amplitude"
+    ],
+    correct: 2,
+    explanation: "For cancellation, the anti-noise wave must be the mirror image — 180° (π radians) out of phase. When noise reaches +1, anti-noise is −1. They sum to zero, eliminating the noise."
+  },
+  {
+    q: "A Fourier Series adds sin(2πt) + (1/3)sin(6πt) + (1/5)sin(10πt). How many distinct frequency components does this signal contain?",
+    opts: [
+      "One — it is still a sine wave",
+      "Two — the fractions don't count",
+      "Three",
+      "Five — based on the denominator of the last term"
+    ],
+    correct: 2,
+    explanation: "Each sin(…) term is one frequency component. 2πt → 1 Hz, 6πt → 3 Hz, 10πt → 5 Hz — three distinct harmonics. The amplitudes (1, 1/3, 1/5) do not change the count of frequencies."
+  },
+  {
+    q: "Why is the frequency domain more useful than the time domain for identifying noise?",
+    opts: [
+      "It shows amplitude over time more clearly",
+      "Noise frequencies appear as distinct spikes that are easy to locate and remove",
+      "It slows the signal down for analysis",
+      "It removes noise automatically without any processing"
+    ],
+    correct: 1,
+    explanation: "In the time domain, noise looks like random ripples tangled with the signal — hard to separate. In the frequency domain, each component appears as a spike at its exact frequency, so noise spikes are clearly visible and can be targeted."
+  },
+  {
+    q: "A signal f(t) is periodic with fundamental frequency 50 Hz. What is the frequency of its 4th harmonic?",
+    opts: [
+      "12.5 Hz",
+      "54 Hz",
+      "400 Hz",
+      "200 Hz"
+    ],
+    correct: 3,
+    explanation: "The nth harmonic has frequency n × f₀. So the 4th harmonic = 4 × 50 = 200 Hz. This is a direct application of the Fourier Series definition where harmonics occur at integer multiples of the fundamental."
+  },
+  {
+    q: "If you remove all harmonics above n = 1 from a square wave's Fourier Series, what do you get?",
+    opts: [
+      "A perfect square wave",
+      "A triangle wave",
+      "A single sine wave at the fundamental frequency",
+      "No signal at all"
+    ],
+    correct: 2,
+    explanation: "Keeping only the n = 1 term leaves just A·sin(ω₀t) — a pure sine wave at the fundamental frequency. The square shape is built by adding all the higher odd harmonics; remove them and the squareness disappears entirely."
+  },
+  {
+    q: "Signal-to-Noise Ratio (SNR) is defined as the ratio of signal power to noise power. If noise cancellation removes 90% of the noise power, the SNR —",
+    opts: [
+      "Stays the same",
+      "Decreases by 90%",
+      "Increases by a factor of 10",
+      "Doubles"
+    ],
+    correct: 2,
+    explanation: "SNR = Signal Power / Noise Power. If noise power drops to 10% (1/10th) of its original value, SNR = Signal / (Noise/10) = 10 × original SNR. Reducing noise power by 90% multiplies SNR by 10 — a 10 dB improvement."
+  }
+];
+// Fisher-Yates shuffle — returns a new shuffled copy
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Build the session deck: shuffle question order, then shuffle each question's
+// options independently (tracking where the correct answer moved to).
+function buildDeck() {
+  return shuffle(quizData).map(q => {
+    const correctText = q.opts[q.correct];
+    const shuffledOpts = shuffle(q.opts);
+    return {
+      q: q.q,
+      opts: shuffledOpts,
+      correct: shuffledOpts.indexOf(correctText),   // new position of correct answer
+      explanation: q.explanation
+    };
+  });
+}
+
+let deck = buildDeck();
+let quizIdx = 0, answered = false, score = 0;
+
+function renderQuiz() {
+  const q = deck[quizIdx];
+  const isLast = quizIdx === deck.length - 1;
+  document.getElementById('quizContent').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <span style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--text-muted);">QUESTION ${quizIdx+1} / ${deck.length}</span>
+      <div style="display:flex;gap:4px;">${deck.map((_,i)=>`<div style="width:20px;height:3px;border-radius:2px;background:${i===quizIdx?'var(--green)':i<quizIdx?'rgba(32,200,140,0.3)':'var(--text-dim)'}"></div>`).join('')}</div>
+    </div>
+    <div class="quiz-q">${q.q}</div>
+    <div class="quiz-options">
+      ${q.opts.map((o,i)=>`<button class="q-opt" data-i="${i}">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+    </div>
+    <div class="quiz-feedback" id="qFeedback">${q.explanation}</div>
+    <div class="quiz-nav">
+      <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--text-dim);">
+        Score: <span id="scoreDisplay" style="color:var(--green);">${score}</span> / ${quizIdx}
+      </div>
+      <div style="display:flex;gap:0.5rem;">
+        ${!isLast
+          ? `<button class="btn-outline" id="nextQ" style="font-size:0.8rem;padding:0.5rem 1.2rem;opacity:0.3;pointer-events:none;">Next →</button>`
+          : `<button class="btn-outline" id="retakeQ" style="font-size:0.8rem;padding:0.5rem 1.2rem;opacity:0.3;pointer-events:none;">Reshuffle ↺</button>`
+        }
+      </div>
+    </div>
+  `;
+  answered = false;
+  document.querySelectorAll('.q-opt').forEach(btn => {
+    btn.addEventListener('click', function() {
+      if (answered) return;
+      answered = true;
+      const chosen = parseInt(this.dataset.i);
+      const correct = q.correct;
+      if (chosen === correct) score++;
+      document.querySelectorAll('.q-opt').forEach((b, i) => {
+        if (i === correct) b.classList.add('correct');
+        else if (i === chosen && chosen !== correct) b.classList.add('wrong');
+        b.style.pointerEvents = 'none';
+      });
+      document.getElementById('qFeedback').style.display = 'block';
+      document.getElementById('scoreDisplay').textContent = score;
+      // Unlock next / retake button
+      const actionBtn = document.getElementById('nextQ') || document.getElementById('retakeQ');
+      if (actionBtn) { actionBtn.style.opacity = '1'; actionBtn.style.pointerEvents = 'auto'; }
+    });
+  });
+  const nextBtn = document.getElementById('nextQ');
+  if (nextBtn) nextBtn.addEventListener('click', () => { quizIdx++; renderQuiz(); });
+  const retakeBtn = document.getElementById('retakeQ');
+  if (retakeBtn) retakeBtn.addEventListener('click', () => {
+    deck = buildDeck();   // fresh shuffle — new question order AND new option order
+    quizIdx = 0; score = 0;
+    renderQuiz();
+  });
+}
+renderQuiz();
+
+// ===== SCROLL FADE =====
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// ===== BACK TO TOP =====
+const backToTop = document.getElementById('backToTop');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 300) {
+    backToTop.classList.add('btt-visible');
+  } else {
+    backToTop.classList.remove('btt-visible');
+  }
+});
+backToTop.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+// === THD ACCORDION ===
+document.getElementById('thdAccordionHeader').addEventListener('click', function() {
+  document.getElementById('thdAccordion').classList.toggle('open');
+});
+</script>
+</body>
+</html>
